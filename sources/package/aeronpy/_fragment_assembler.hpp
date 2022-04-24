@@ -38,7 +38,7 @@ public:
      */
     fragment_assembler(py::function& handler);
 
-    //py::function& handler();
+    py::cpp_function handler();
 
 
 private:

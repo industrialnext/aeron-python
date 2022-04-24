@@ -62,23 +62,23 @@ vector<Image> subscription::images() const
 
 int subscription::poll(py::function handler, int fragment_limit)
 {
-    return aeron_subscription_->poll(
-            [&, this](auto& buffer, auto offset, auto length, auto& header)
-            {
-                py::gil_scoped_acquire gil_guard;
+    return aeron_subscription_->poll(handler, fragment_limit);
+            ///[&, this](auto& buffer, auto offset, auto length, auto& header)
+            ///{
+            ///    py::gil_scoped_acquire gil_guard;
 
-                auto data_info = py::buffer_info(
-                        buffer.buffer() + offset,
-                        sizeof(uint8_t),
-                        py::format_descriptor<uint8_t>::format(),
-                        length);
+            ///    auto data_info = py::buffer_info(
+            ///            buffer.buffer() + offset,
+            ///            sizeof(uint8_t),
+            ///            py::format_descriptor<uint8_t>::format(),
+            ///            length);
 
-                if (is_complete_poll_handler(handler)) // expected performance hit
-                    handler(py::memoryview(data_info), header);
-                else
-                    handler(py::memoryview(data_info));
-            },
-            fragment_limit);
+            ///    //if (is_complete_poll_handler(handler)) // expected performance hit
+            ///    //    handler(py::memoryview(data_info), header);
+            ///    //else
+            ///    handler(py::memoryview();
+            ///},
+            ///fragment_limit);
 }
 
 bool subscription::__bool__() const

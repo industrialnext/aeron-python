@@ -19,6 +19,7 @@
 #include <fmt/format.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
+#include <pybind11/functional.h>
 
 using namespace std;
 using namespace std::chrono;
@@ -28,36 +29,36 @@ namespace py = pybind11;
 
 
 fragment_assembler::fragment_assembler(py::function& handler)
-    : aeron_fragment_assembler_(handler)
+    : aeron_fragment_assembler_(
+            [&, this](auto& buffer, auto offset, auto length, auto& header)
+            {
+                py::gil_scoped_acquire gil_guard;
+
+                auto data_info = py::buffer_info(
+                        buffer.buffer() + offset,
+                        sizeof(uint8_t),
+                        py::format_descriptor<uint8_t>::format(),
+                        length);
+
+                handler(py::memoryview(data_info));
+                //if (is_complete_poll_handler(handler)) // expected performance hit
+                //    handler(py::memoryview(data_info), header);
+                //else
+                //    handler(py::memoryview(data_info));
+            })
 {}
 
-//py::function &handler() {
-//
-//    return [&, this](auto& buffer, auto offset, auto length, auto& header)
-//            {
-//                py::gil_scoped_acquire gil_guard;
-//
-//                auto data_info = py::buffer_info(
-//                        buffer.buffer() + offset,
-//                        sizeof(uint8_t),
-//                        py::format_descriptor<uint8_t>::format(),
-//                        length);
-//
-//                if (is_complete_poll_handler(handler)) // expected performance hit
-//                    handler(py::memoryview(data_info), header);
-//                else
-//                    handler(py::memoryview(data_info));
-//            };
-//
-//}
+py::cpp_function fragment_assembler::handler() {
+    return py::cpp_function(aeron_fragment_assembler_.handler());
+}
 
 PYBIND11_MODULE(_fragment_assembler, m)
 {
     static constexpr auto default_fragment_limit = 10;
 
     py::class_<fragment_assembler>(m, "FragmentAssembler")
-            .def(py::init<py::function &>());
-            //.def("handler", &fragement_assembler:handler);
+            .def(py::init<py::function &>())
+            .def("handler", &fragment_assembler::handler);
             //.def("poll", &fragment_assembler::poll,
             //        py::arg("handler"),
             //        py::arg("fragment_limit") = default_fragment_limit,
