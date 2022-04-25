@@ -60,7 +60,7 @@ vector<Image> subscription::images() const
     return *aeron_subscription_->images();
 }
 
-int subscription::poll(py::function handler, int fragment_limit)
+int subscription::poll(fragment_handler_t handler, int fragment_limit)
 {
     return aeron_subscription_->poll(handler, fragment_limit);
             ///[&, this](auto& buffer, auto offset, auto length, auto& header)

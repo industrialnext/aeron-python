@@ -17,12 +17,15 @@
 #pragma once
 
 #include <Aeron.h>
+#include <concurrent/logbuffer/TermReader.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
+using namespace aeron::concurrent::logbuffer;
 
 /**
  * @brief Represents an interop proxy for an Aeron subscription.
@@ -72,7 +75,7 @@ public:
      * @param fragment_limit
      * @return
      */
-    int poll(pybind11::function handler, int fragment_limit);
+    int poll(fragment_handler_t handler, int fragment_limit);
 
     /**
      * @brief

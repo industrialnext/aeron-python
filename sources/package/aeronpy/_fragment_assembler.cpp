@@ -30,9 +30,11 @@ namespace py = pybind11;
 
 fragment_assembler::fragment_assembler(py::function& handler)
     : aeron_fragment_assembler_(
-            [&, this](auto& buffer, auto offset, auto length, auto& header)
+            [handler](auto& buffer, auto offset, auto length, auto& header)
             {
                 py::gil_scoped_acquire gil_guard;
+
+                printf("Got here\n");
 
                 auto data_info = py::buffer_info(
                         buffer.buffer() + offset,
@@ -48,8 +50,8 @@ fragment_assembler::fragment_assembler(py::function& handler)
             })
 {}
 
-py::cpp_function fragment_assembler::handler() {
-    return py::cpp_function(aeron_fragment_assembler_.handler());
+fragment_handler_t fragment_assembler::handler() {
+    return aeron_fragment_assembler_.handler();
 }
 
 PYBIND11_MODULE(_fragment_assembler, m)
@@ -57,7 +59,8 @@ PYBIND11_MODULE(_fragment_assembler, m)
     static constexpr auto default_fragment_limit = 10;
 
     py::class_<fragment_assembler>(m, "FragmentAssembler")
-            .def(py::init<py::function &>())
+            .def(py::init<py::function &>(),
+                    py::call_guard<py::gil_scoped_release>())
             .def("handler", &fragment_assembler::handler);
             //.def("poll", &fragment_assembler::poll,
             //        py::arg("handler"),

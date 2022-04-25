@@ -18,6 +18,7 @@
 
 #include <Aeron.h>
 #include <FragmentAssembler.h>
+#include <concurrent/logbuffer/TermReader.h>
 #include <pybind11/pybind11.h>
 
 #include <memory>
@@ -25,6 +26,8 @@
 #include <vector>
 
 namespace py = pybind11;
+
+using namespace aeron::concurrent::logbuffer;
 
 /**
  * @brief Represents an interop proxy for an Aeron fragment_assembler.
@@ -38,7 +41,7 @@ public:
      */
     fragment_assembler(py::function& handler);
 
-    py::cpp_function handler();
+    fragment_handler_t handler();
 
 
 private:
