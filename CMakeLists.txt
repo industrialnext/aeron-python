@@ -35,6 +35,12 @@ endif ()
 include_directories(${Python_INCLUDE_DIRS})
 message(STATUS "Python include path: " ${Python_INCLUDE_DIRS})
 
+# find fmt
+find_package(fmt REQUIRED)
+
+# find aeron
+find_package(aeron REQUIRED)
+
 # setup CMake to run tests
 enable_testing()
 
